@@ -98,23 +98,9 @@ public class ChatActivity extends AppCompatActivity {
 
         mRootRef = FirebaseDatabase.getInstance().getReference();
         mChatUser = getIntent().getStringExtra("from_user_id");
-//        mChatUser = "KBLpOoTdDkXy0Evo0wtLXbWhDqf2";
-//        if(getIntent().getExtras() == null){
-//            Log.d("null", "null hai");
-//        }
-//        if(getIntent().getExtras()!=null){
-//            for(String key : getIntent().getExtras().keySet()){
-//                //Toast.makeText(this, key, Toast.LENGTH_SHORT).show();
-//            }
-//        }
 
         Log.d("Chat_user: ", mChatUser);
-//        String userName = getIntent().getStringExtra("user_name");
         String tester = mRootRef.child("Users").child(mChatUser).child("name").toString();
-//        String tester = mRootRef.child("Users").child(mChatUser).getValue("name");
-        Log.d("tester", tester);
-
-        //getSupportActionBar().setTitle(userName);
 
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View action_bar_view = inflater.inflate(R.layout.chat_custom_bar, null);
@@ -159,7 +145,7 @@ public class ChatActivity extends AppCompatActivity {
         mMessagesList.setAdapter(mAdapter);
 
         mImageStorage = FirebaseStorage.getInstance().getReference();
-        
+
         loadMessages();
 
         mRootRef.child("Users").child(mChatUser).addValueEventListener(new ValueEventListener() {
@@ -435,42 +421,30 @@ public class ChatActivity extends AppCompatActivity {
 
             final String push_id = user_message_push.getKey();
 
-            StorageReference filepath = mImageStorage.child("message_images").child(push_id + ".jpg");
+            final StorageReference filepath = mImageStorage.child("message_images").child(push_id + ".jpg");
             filepath.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-
                     if(task.isSuccessful()){
-
-                        String download_url = task.getResult().getDownloadUrl().toString();
-
+                        String download_url = filepath.getDownloadUrl().toString();
                         Map messageMap = new HashMap();
                         messageMap.put("message", download_url);
                         messageMap.put("seen", false);
                         messageMap.put("type", "image");
                         messageMap.put("time", ServerValue.TIMESTAMP);
                         messageMap.put("from", mCurrentUserId);
-
                         Map messageUserMap = new HashMap();
                         messageUserMap.put(current_user_ref + "/" + push_id, messageMap);
                         messageUserMap.put(chat_user_ref + "/" + push_id, messageMap);
-
                         mChatMessageView.setText("");
-
                         mRootRef.updateChildren(messageUserMap, new DatabaseReference.CompletionListener() {
                             @Override
                             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-
                                 if(databaseError != null){
-
                                     Log.d("CHAT_LOG",databaseError.getMessage().toString());
-
                                 }
-
                             }
                         });
-
-
                     }
 
                 }

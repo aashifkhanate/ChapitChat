@@ -8,6 +8,8 @@ import android.util.Log;
 
 import com.google.firebase.messaging.RemoteMessage;
 
+import static android.content.Context.NOTIFICATION_SERVICE;
+
 /**
  * Created by aashifkhanate on 10-01-2018.
  */

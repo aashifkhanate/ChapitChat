@@ -161,33 +161,23 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if(requestCode == GALLERY_PICK && resultCode == RESULT_OK){
             Uri imageUri = data.getData();
-
             CropImage.activity(imageUri)
                     .setAspectRatio(1,1)
                     .start(this);
-
-//            Toast.makeText(SettingsActivity.this, imageUri, Toast.LENGTH_LONG).show();
         }
-
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
-
                 mProgressDialog = new ProgressDialog(SettingsActivity.this);
                 mProgressDialog.setTitle("Uploading image...");
                 mProgressDialog.setMessage("Please wait while we upload and process the image.");
                 mProgressDialog.setCanceledOnTouchOutside(false);
                 mProgressDialog.show();
-
                 Uri resultUri = result.getUri();
-
                 File thumb_filePath = new File(resultUri.getPath());
-
                 String current_user_id = mCurrentUser.getUid();
-
                 Bitmap thumb_bitmap = null;
                 try {
                     thumb_bitmap = new Compressor(this)
@@ -198,32 +188,27 @@ public class SettingsActivity extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 thumb_bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
                 final byte[] thumb_byte = baos.toByteArray();
-
-
-                StorageReference filepath = mImageStorage.child("profile_images").child(current_user_id + ".jpg");
+                final StorageReference filepath = mImageStorage.child("profile_images").child(current_user_id + ".jpg");
                 final StorageReference thumb_filepath = mImageStorage.child("profile_images").child("thumbs").child(current_user_id + ".jpg");
                 filepath.putFile(resultUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                         if(task.isSuccessful()){
-                            final String download_url = task.getResult().getDownloadUrl().toString();
+//                            final String download_url = task.getResult().getDownloadUrl().toString();
+                            final String download_url = filepath.getDownloadUrl().toString();
                             UploadTask uploadTask = thumb_filepath.putBytes(thumb_byte);
                             uploadTask.addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                                 @Override
                                 public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> thumb_task) {
-
-                                    String thumb_downloadUrl = thumb_task.getResult().getDownloadUrl().toString();
-
+//                                    String thumb_downloadUrl = thumb_task.getResult().getDownloadUrl().toString();
+                                    String thumb_downloadUrl = thumb_filepath.getDownloadUrl().toString();
                                     if(thumb_task.isSuccessful()){
-
                                         Map update_hashMap = new HashMap<>();
                                         update_hashMap.put("image", download_url);
                                         update_hashMap.put("thumb_image", thumb_downloadUrl);
-
                                         mUserDatabase.updateChildren(update_hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override
                                             public void onComplete(@NonNull Task<Void> task) {
@@ -237,21 +222,17 @@ public class SettingsActivity extends AppCompatActivity {
                                         Toast.makeText(SettingsActivity.this, "Error in uploading thumbnail", Toast.LENGTH_LONG).show();
                                         mProgressDialog.dismiss();
                                     }
-
                                 }
                             });
                         }else{
                             Toast.makeText(SettingsActivity.this, "Error in uploading", Toast.LENGTH_LONG).show();
                             mProgressDialog.dismiss();
                         }
-
                     }
                 });
-
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = result.getError();
             }
         }
-
     }
 }
